@@ -1,32 +1,26 @@
-# Rust Game of Life - High Performance Demo
+# Game of Life in Rust
 
-A highly optimized Implementation of Conway's Game of Life in Rust, demonstrating advanced optimization techniques including SIMD, Bit-Packing, and Parallelism.
+This project started as a simple exercise to build a Cellular Automata engine in Rust. I wanted to understand how these simulations work and build a nice interactive playground for them.
+
+Once I had the basics working, I started adding features I wanted to play with, like different rule sets and a library of patterns because drawing gliders by hand gets tedious fast.
+
+Eventually, it turned into a performance challenge. I wanted to see just how many cells I could simulate per second on my machine by implementing known optimization techniques like bit-packing and SIMD.
 
 ## Features
 
-### Multiple Algorithms
-This project implements several evolution strategies to demonstrate performance scaling:
-1.  **Original**: Naive `Vec<Cell>` implementation (Baseline).
-2.  **BitGrid**: 1-bit per cell storage (8x memory reduction).
-3.  **SIMD**: AVX2-optimized bitwise operations processing 64 cells per step.
-4.  **SIMD + Parallel**: The **Fastest** implementation. Combines SIMD with multi-threading (Rayon) for massive throughput.
-5.  **Temporal Blocking**: Cache-aware tiling algorithm that processes 4 generations at once to reduce memory bandwidth.
+It works as a fully interactive simulator that supports multiple rule sets including Conway's Life, HighLife, and Seeds. It features a built-in pattern library containing various spaceships and guns. The grid is completely interactive, allowing you to zoom, pan, and draw or erase cells with your mouse while monitoring real-time performance metrics.
 
-### Rule Sets
-Supports configurable cellular automata rules:
-- **Conway's Game of Life** (B3/S23)
-- **HighLife** (B36/S23)
-- **Seeds** (B2/S)
+## The Optimization Experiment
 
-### Interactive UI
-- Zoomable/Pannable infinite grid
-- Pattern placement (Gliders, Spaceships, Guns)
-- Real-time performance metrics
-- Configurable simulation speed
+After building the core engine, I found the performance on large grids was pretty bad (~0.7ms for a tiny 100x100 grid). So I went down the rabbit hole of standard optimizations.
 
-## Performance Results
+First came memory compression, where I switched from storing bytes to bits (`BitGrid`), reducing memory usage by 8x. Then I added parallelism using `rayon` to split the workload across CPU cores. Since the data was now just bits, I could use AVX/SSE instructions to process 64 cells at once using hardware bitwise operations. Finally, I explored temporal blocking strategies to keep data in the CPU cache longer.
 
-Benchmarks run on the test environment specified below with `target-cpu=native`.
+It turns out that for my specific hardware (Ryzen 5 4650G), the **SIMD + Parallel** approach combined with the `target-cpu=native` compiler flag gives the best results.
+
+## Benchmark Results
+
+I ran these on a Proxmox VM (4 cores, 8GB RAM). The speedup from the naive implementation to the final optimized version is about **65x**. We're pushing over **2 Billion cells per second**.
 
 ```text
       Size     Original      BitGrid         SIMD     SIMD+Par    TempBlock    Speedup
@@ -55,38 +49,24 @@ SIMD+Parallel:    47.66 ms/gen, 2098.0M cells/sec
 TempBlock+Par:    61.76 ms/gen, 1619.1M cells/sec
 ```
 
-## Test Environment
-
-These results were achieved under specific constraints that I chose for this project.
-
-- **Virtualization**: Proxmox VM
-- **OS**: OpenSUSE Leap (Kernel 6.12.0-160000.9-default)
-- **Host CPU**: Ryzen 5 4650G
-- **VM Evaluation**: 4 Cores allocated, 8GB RAM
-
-### Performance Note
-There is likely significant performance left on the table. A more modern CPU (e.g., AVX-512 support) and faster DDR5 RAM would likely yield even higher throughput than what was observed in this constrained VM environment.
-
-If you try this out on different hardware, I would be interested to hear your results!
-
 ## Build & Run
 
-### Standard Build
+To run this project, you will need the Rust compiler installed. If you haven't installed it yet, `rustup` is the recommended way to do so.
+
 ```bash
+# Build the project (release mode is highly recommended for performance)
+cargo build --release
+
+# Run the simulation
 cargo run --release
 ```
 
-### Optimized Build (Recommended)
-Unlocks AVX2/BMI2 instructions for maximum speed.
+To achieve the maximum performance shown in the benchmarks, you should compile with CPU-specific optimizations enabled. This allows the compiler to use AVX2 and BMI2 instructions available on your processor:
+
 ```bash
 RUSTFLAGS="-C target-cpu=native" cargo run --release
 ```
 
-## How to Play
-- **Left Click**: Draw cells
-- **Right Click**: Erase cells
-- **Scroll Wheel**: Zoom
-- **Middle Click**: Pan
-- **Space**: Pause/Resume
-- **C**: Clear Grid
-- **R**: Randomize Grid
+## Disclaimer
+
+Parts of this code and documentation were generated with the assistance of an AI.
