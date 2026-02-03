@@ -28,14 +28,32 @@ Supports configurable cellular automata rules:
 
 Benchmarks run on the test environment specified below with `target-cpu=native`.
 
-| Grid Size | Algorithm | Time/Gen | Throughput | speedup |
-|-----------|-----------|----------|------------|---------|
-| 100x100 | Original | 0.70 ms | - | 1x |
-| | **SIMD+Par** | **0.06 ms** | - | **11.7x** |
-| 5000x5000 | Original | 781.48 ms | 32M cells/s | 1x |
-| (25M cells)| **SIMD+Par** | **11.95 ms** | **2.1B cells/s** | **65.4x** |
-| 20000x20000| **SIMD+Par** | **184.99 ms** | **2.16B cells/s** | |
-| (400M cells)| (Native) | | | |
+```text
+      Size     Original      BitGrid         SIMD     SIMD+Par    TempBlock    Speedup
+------------------------------------------------------------------------------------------
+   100x100         0.70         0.59         0.02         0.06         0.05      13.6x
+   500x500         8.73         7.92         0.44         0.16         0.25      53.9x
+ 1000x1000        32.40        32.35         1.83         0.57         0.92      57.1x
+ 2000x2000       125.68       124.96         7.17         2.15         3.69      58.5x
+ 5000x5000       781.48       772.04        45.15        11.95        16.31      65.4x
+10000x10000            -            -       179.90        47.04        62.75          -
+20000x20000            -            -       700.87       184.99       241.87          -
+```
+
+```text
+=== Memory Usage (10000x10000) ===
+
+Original Grid:  100000000 bytes (100.0 MB)
+BitGrid:         12560000 bytes (12.6 MB)
+Reduction:            8.0x
+```
+
+```text
+=== Throughput at 10000x10000 ===
+
+SIMD+Parallel:    47.66 ms/gen, 2098.0M cells/sec
+TempBlock+Par:    61.76 ms/gen, 1619.1M cells/sec
+```
 
 ## Test Environment
 
