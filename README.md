@@ -2,7 +2,7 @@
 
 A highly optimized Implementation of Conway's Game of Life in Rust, demonstrating advanced optimization techniques including SIMD, Bit-Packing, and Parallelism.
 
-## 🚀 Features
+## Features
 
 ### Multiple Algorithms
 This project implements several evolution strategies to demonstrate performance scaling:
@@ -24,22 +24,34 @@ Supports configurable cellular automata rules:
 - Real-time performance metrics
 - Configurable simulation speed
 
-## ⚡ Performance Results
+## Performance Results
 
-Benchmarks run on **Ryzen 5 4650G** (6C/12T) with `target-cpu=native`.
+Benchmarks run on the test environment specified below with `target-cpu=native`.
 
 | Grid Size | Algorithm | Time/Gen | Throughput | speedup |
 |-----------|-----------|----------|------------|---------|
-| 100x100 | Original | 0.88 ms | - | 1x |
-| | **SIMD+Par** | **0.05 ms** | - | **22x** |
-| 5000x5000 | Original | 910 ms | 27M cells/s | 1x |
-| (25M cells)| **SIMD+Par** | **13.8 ms** | **1.8B cells/s** | **60x** |
-| 20000x20000| **SIMD+Par** | **207 ms** | **1.75B cells/s** | |
+| 100x100 | Original | 0.70 ms | - | 1x |
+| | **SIMD+Par** | **0.06 ms** | - | **11.7x** |
+| 5000x5000 | Original | 781.48 ms | 32M cells/s | 1x |
+| (25M cells)| **SIMD+Par** | **11.95 ms** | **2.1B cells/s** | **65.4x** |
+| 20000x20000| **SIMD+Par** | **184.99 ms** | **2.16B cells/s** | |
 | (400M cells)| (Native) | | | |
 
-*Using `SIMD + Parallel` with `RUSTFLAGS="-C target-cpu=native"` provides a 30% speedup over generic builds on modern CPUs.*
+## Test Environment
 
-## 🛠️ Build & Run
+These results were achieved under specific constraints that I chose for this project.
+
+- **Virtualization**: Proxmox VM
+- **OS**: OpenSUSE Leap (Kernel 6.12.0-160000.9-default)
+- **Host CPU**: Ryzen 5 4650G
+- **VM Evaluation**: 4 Cores allocated, 8GB RAM
+
+### Performance Note
+There is likely significant performance left on the table. A more modern CPU (e.g., AVX-512 support) and faster DDR5 RAM would likely yield even higher throughput than what was observed in this constrained VM environment.
+
+If you try this out on different hardware, I would be interested to hear your results!
+
+## Build & Run
 
 ### Standard Build
 ```bash
@@ -52,7 +64,7 @@ Unlocks AVX2/BMI2 instructions for maximum speed.
 RUSTFLAGS="-C target-cpu=native" cargo run --release
 ```
 
-## 🎮 How to Play
+## How to Play
 - **Left Click**: Draw cells
 - **Right Click**: Erase cells
 - **Scroll Wheel**: Zoom
